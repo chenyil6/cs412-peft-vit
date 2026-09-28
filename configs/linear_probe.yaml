@@ -1,0 +1,38 @@
+# Linear probe: frozen ViT-B/16 (IN-21k), train the linear head only.  Lower-bound baseline.
+method: linear_probe
+backbone: vit_b16_in21k          # timm vit_base_patch16_224.orig_in21k (checkpoint used by the VPT paper)
+backbone_weights: /work/nvme/bilw/hchen56/models/vit_base_patch16_224.orig_in21k/model.safetensors
+out_dir: runs
+
+data:
+  root: /work/nvme/bilw/hchen56/datasets/fgvc-aircraft-2013b-r256   # pre-resized copy (scripts/preprocess_resize.py)
+  train_split: trainval
+  test_split: test
+  resize: 256
+  crop: 224
+  batch_size: 128
+  eval_batch_size: 256
+  workers: 8
+
+# lr selected on the official train/val split (train 3,334 -> val 3,333), 50 epochs, seed 0:
+#   SGD  lr 0.01/0.03/0.1/0.3/1/3/10 -> val 22.4/26.8/31.8/36.9/41.4/42.9/43.4
+#   AdamW lr 1e-3/3e-3/1e-2/3e-2     -> val 30.9/35.5/40.4/42.6
+# Plateau from lr >= 3 (differences within val noise); we take the smallest plateau value.
+# See report.md section 2. The test split was not used for this choice.
+optim:
+  name: sgd
+  lr: 3.0
+  momentum: 0.9
+  weight_decay: 0.0
+
+sched:
+  epochs: 50
+  warmup_epochs: 5
+  min_lr_ratio: 0.0
+
+train:
+  seed: 0
+  amp: true          # bf16 autocast on A100
+  eval_every: 5      # test accuracy is logged every N epochs for curves; the reported number is the LAST epoch
+  save_ckpt: true
+  grad_clip: null
