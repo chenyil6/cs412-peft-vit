@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+runs/
+slurm_logs/
+*.pt
+.ipynb_checkpoints/
+CS_412_proposal.pdf
