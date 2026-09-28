@@ -44,3 +44,15 @@ class PEFTClassifier(nn.Module):
         else:
             feats = self.backbone(x)
         return self.head(feats)
+
+
+def load_trainable(model, path, strict_names=True):
+    """Load a `trainable.pt` written by train.py (only the tensors that were trainable) into a model on
+    which the same method has already been applied. Returns the loaded parameter names."""
+    state = torch.load(path, map_location="cpu")
+    names = {n for n, p in model.named_parameters() if p.requires_grad}
+    if strict_names and set(state) != names:
+        missing, extra = names - set(state), set(state) - names
+        raise KeyError(f"trainable tensors do not match: missing={sorted(missing)[:5]} extra={sorted(extra)[:5]}")
+    model.load_state_dict(state, strict=False)
+    return sorted(state)
