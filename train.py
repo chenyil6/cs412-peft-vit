@@ -113,10 +113,12 @@ def main():
         test_ds = Subset(test_ds, torch.randperm(len(test_ds), generator=g)[:64].tolist())
 
     model = PEFTClassifier(backbone, num_classes)
+    n_base = count_params(model)                     # pre-trained backbone + shared head, before any method is applied
     method_info = apply_method(model, cfg["method"], cfg)
     model.to(device)
 
-    n_total = count_params(model)
+    n_total = count_params(model)                    # after the method (LoRA / VPT add parameters)
+    n_added = n_total - n_base
     n_trainable = count_params(model, trainable_only=True)
     n_head = count_params(model.head)
     n_method = n_trainable - n_head
@@ -124,9 +126,10 @@ def main():
         for n, p in model.named_parameters():
             if p.requires_grad:
                 f.write(f"{n}\t{tuple(p.shape)}\t{p.numel()}\n")
-        f.write(f"\n# trainable={n_trainable}  head={n_head}  method(excl. head)={n_method}  total={n_total}\n")
-    print(f"[params] total={n_total:,} trainable={n_trainable:,} (head {n_head:,} + method {n_method:,}) "
-          f"= {100*n_trainable/n_total:.3f}% of backbone+head | {method_info}", flush=True)
+        f.write(f"\n# trainable={n_trainable}  head={n_head}  method(excl. head)={n_method}  "
+                f"added={n_added}  base(backbone+head)={n_base}\n")
+    print(f"[params] base={n_base:,} added={n_added:,} trainable={n_trainable:,} (head {n_head:,} + method {n_method:,}) "
+          f"= {100*n_trainable/n_base:.3f}% of backbone+head | {method_info}", flush=True)
 
     # ---- data --------------------------------------------------------------------------------
     train_loader = DataLoader(train_ds, batch_size=dcfg["batch_size"], shuffle=True, num_workers=dcfg["workers"],
@@ -198,8 +201,9 @@ def main():
     summary = {
         "method": cfg["method"], "seed": seed, "backbone": cfg["backbone"], "epochs": epochs,
         "final_test_acc": test_acc, "final_test_loss": test_loss,
-        "params_total": n_total, "params_trainable": n_trainable, "params_head": n_head,
-        "params_method_excl_head": n_method, "trainable_pct": 100 * n_trainable / n_total,
+        "params_base": n_base, "params_added": n_added, "params_total": n_total,
+        "params_trainable": n_trainable, "params_head": n_head,
+        "params_method_excl_head": n_method, "trainable_pct": 100 * n_trainable / n_base,
         "peak_gpu_mem_mb": peak_mem_mb,
         "train_time_s": train_time_total, "wall_time_s": wall.elapsed(),
         "epoch_time_s_mean": train_time_total / epochs,

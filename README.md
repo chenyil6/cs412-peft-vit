@@ -10,6 +10,8 @@ train.py                  single entry point for every method
 peft_vit/data.py          FGVC-Aircraft dataset + VPT-style transforms
 peft_vit/model.py         backbone loading (timm) + shared linear head
 peft_vit/methods/         one file per method; each sets requires_grad / injects modules
+                          linear_probe, bitfit, lora (from scratch), full_ft; vpt_deep pending (M3)
+tests/test_methods.py     CPU unit tests: exact parameter counts, gradient flow, LoRA identity-at-init and merge
 peft_vit/utils.py         seeding, param counting, cosine schedule, logging
 configs/<method>.yaml     hyper-parameters per method
 scripts/train.sbatch      Slurm job (Delta, 1x A100)
@@ -26,6 +28,7 @@ python scripts/preprocess_resize.py --root /work/nvme/bilw/hchen56/datasets/fgvc
 
 ## Run
 ```bash
+python tests/test_methods.py                                        # unit tests (CPU, ~20 s)
 python train.py --config configs/linear_probe.yaml --smoke         # sanity check (CPU ok)
 sbatch scripts/train.sbatch configs/linear_probe.yaml --seed 0     # 1x A100
 ```
