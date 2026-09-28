@@ -1,0 +1,35 @@
+# BitFit: unfreeze every bias term of the frozen backbone (+ the shared head).  Method under study.
+# Source: Ben Zaken et al. (ACL 2022) use AdamW with a bias-only lr grid {1e-4, 4e-4, 7e-4, 1e-3};
+# we take 1e-3 (also the ViT default of NOAH / later vision PEFT work). No weight decay on biases.
+method: bitfit
+backbone: vit_b16_in21k          # timm vit_base_patch16_224.orig_in21k (checkpoint used by the VPT paper)
+backbone_weights: /work/nvme/bilw/hchen56/models/vit_base_patch16_224.orig_in21k/model.safetensors
+out_dir: runs
+
+data:
+  root: /work/nvme/bilw/hchen56/datasets/fgvc-aircraft-2013b-r256   # pre-resized copy (scripts/preprocess_resize.py)
+  train_split: trainval
+  test_split: test
+  resize: 256
+  crop: 224
+  batch_size: 128
+  eval_batch_size: 256
+  workers: 8
+
+optim:
+  name: adamw
+  lr: 0.001
+  betas: [0.9, 0.999]
+  weight_decay: 0.0
+
+sched:            # shared budget for every method (decision 2026-09-28): 50 epochs, 5 warmup, cosine to 0
+  epochs: 50
+  warmup_epochs: 5
+  min_lr_ratio: 0.0
+
+train:
+  seed: 0
+  amp: true
+  eval_every: 5
+  save_ckpt: true
+  grad_clip: null

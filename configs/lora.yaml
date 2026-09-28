@@ -1,0 +1,41 @@
+# LoRA on W_q and W_v of every attention block; backbone otherwise frozen.  Method under study.
+# Source: Hu et al. (ICLR 2022), RoBERTa-base GLUE recipe (Table 9 + examples/NLU/roberta_base_mnli.sh):
+# AdamW, lr 5e-4, weight decay 0.1, r_q = r_v = 8, alpha = 8 (paper table; the repo script uses 16),
+# A ~ Gaussian, B = 0, forward scaled by alpha / r.  Schedule is the shared cosine (paper: linear decay).
+method: lora
+lora:
+  r: 8
+  alpha: 8
+  targets: [q, v]      # which of q / k / v projections get a low-rank update
+  dropout: 0.0
+backbone: vit_b16_in21k          # timm vit_base_patch16_224.orig_in21k (checkpoint used by the VPT paper)
+backbone_weights: /work/nvme/bilw/hchen56/models/vit_base_patch16_224.orig_in21k/model.safetensors
+out_dir: runs
+
+data:
+  root: /work/nvme/bilw/hchen56/datasets/fgvc-aircraft-2013b-r256   # pre-resized copy (scripts/preprocess_resize.py)
+  train_split: trainval
+  test_split: test
+  resize: 256
+  crop: 224
+  batch_size: 128
+  eval_batch_size: 256
+  workers: 8
+
+optim:
+  name: adamw
+  lr: 0.0005
+  betas: [0.9, 0.999]
+  weight_decay: 0.1
+
+sched:            # shared budget for every method (decision 2026-09-28): 50 epochs, 5 warmup, cosine to 0
+  epochs: 50
+  warmup_epochs: 5
+  min_lr_ratio: 0.0
+
+train:
+  seed: 0
+  amp: true
+  eval_every: 5
+  save_ckpt: true
+  grad_clip: null

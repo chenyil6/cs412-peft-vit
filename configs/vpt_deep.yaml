@@ -1,0 +1,42 @@
+# VPT-deep: p learnable prompt tokens prepended at the input of every transformer layer.  Anchor method.
+# Source: Jia et al. (ECCV 2022) + official repo: SGD momentum 0.9, cosine, prompts xavier-uniform,
+# dropout 0.1 on prompts (VPT-deep); released CUB config lr 0.1, weight decay 0.01.
+# Prompt length: paper selected p per dataset from {1,5,10,50,100,200} (FGVC mean 73, Cars 200);
+# decision 2026-09-28: p = 50, fixed, no search.  Batch 128 is the paper's value for p < 100.
+method: vpt_deep
+vpt:
+  num_tokens: 50
+  deep: true
+  dropout: 0.1
+  init: xavier_uniform
+backbone: vit_b16_in21k          # timm vit_base_patch16_224.orig_in21k (checkpoint used by the VPT paper)
+backbone_weights: /work/nvme/bilw/hchen56/models/vit_base_patch16_224.orig_in21k/model.safetensors
+out_dir: runs
+
+data:
+  root: /work/nvme/bilw/hchen56/datasets/fgvc-aircraft-2013b-r256   # pre-resized copy (scripts/preprocess_resize.py)
+  train_split: trainval
+  test_split: test
+  resize: 256
+  crop: 224
+  batch_size: 128
+  eval_batch_size: 256
+  workers: 8
+
+optim:
+  name: sgd
+  lr: 0.1
+  momentum: 0.9
+  weight_decay: 0.01
+
+sched:            # shared budget for every method (decision 2026-09-28): 50 epochs, 5 warmup, cosine to 0
+  epochs: 50
+  warmup_epochs: 5
+  min_lr_ratio: 0.0
+
+train:
+  seed: 0
+  amp: true
+  eval_every: 5
+  save_ckpt: true
+  grad_clip: null
