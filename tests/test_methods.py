@@ -15,6 +15,7 @@ import torch
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from peft_vit.methods import apply_method                      # noqa: E402
 from peft_vit.methods.lora import LoRAQKV, merge_lora, unmerge_lora  # noqa: E402
+from peft_vit.methods.vpt_deep import VPTDeepBlocks               # noqa: E402
 from peft_vit.model import PEFTClassifier, load_backbone       # noqa: E402
 
 DIM, DEPTH, NUM_CLASSES = 768, 12, 100
@@ -22,6 +23,8 @@ HEAD = DIM * NUM_CLASSES + NUM_CLASSES                         # 76,900
 BIAS = DEPTH * (768 + 2304 + 768 + 768 + 3072 + 768) + 768 + 768   # 102,912
 LORA_CFG = {"lora": {"r": 8, "alpha": 8, "targets": ["q", "v"], "dropout": 0.0}}
 LORA = DEPTH * 2 * (2 * 8 * DIM)                               # 294,912
+VPT_CFG = {"vpt": {"num_tokens": 50, "deep": True, "dropout": 0.1, "init": "xavier_uniform"}}
+VPT = DEPTH * 50 * DIM                                          # 460,800
 
 
 def base_model(seed=0):
@@ -89,8 +92,40 @@ def test_lora_merge_matches_unmerged():
     assert not torch.allclose(y_unmerged, base_model()(x))    # sanity: the perturbed B changed the output
 
 
+def test_vpt_deep_counts_and_names():
+    m = base_model(); apply_method(m, "vpt_deep", VPT_CFG)
+    t = trainable(m)
+    assert set(t) == {"backbone.blocks.prompts", "head.weight", "head.bias"}
+    assert t["backbone.blocks.prompts"].shape == (DEPTH, 50, DIM)
+    assert sum(p.numel() for p in t.values()) == VPT + HEAD
+    v = (6.0 / (3 * 16 * 16 + DIM)) ** 0.5
+    assert t["backbone.blocks.prompts"].abs().max() <= v and t["backbone.blocks.prompts"].abs().max() > 0.9 * v
+    assert isinstance(m.backbone.blocks, VPTDeepBlocks) and len(m.backbone.blocks) == DEPTH
+
+
+def test_vpt_deep_prompts_replaced_at_every_layer():
+    """Every block must see [CLS, P_i, 196 patches] at its input, with P_i the prompts of THAT layer."""
+    m = base_model(); apply_method(m, "vpt_deep", VPT_CFG); m.eval()      # eval: prompt dropout off
+    seen = {}
+    hooks = [blk.register_forward_pre_hook(lambda mod, inp, i=i: seen.__setitem__(i, inp[0].detach()))
+             for i, blk in enumerate(m.backbone.blocks.blocks)]
+    x = torch.randn(2, 3, 224, 224)
+    with torch.no_grad():
+        out = m(x)
+    for h in hooks:
+        h.remove()
+    assert out.shape == (2, NUM_CLASSES)
+    prompts = m.backbone.blocks.prompts
+    for i in range(DEPTH):
+        inp = seen[i]
+        assert inp.shape == (2, 1 + 50 + 196, DIM), inp.shape
+        assert torch.allclose(inp[:, 1:51], prompts[i].expand(2, -1, -1)), f"layer {i}: prompt slice is not P_{i}"
+        if i > 0:
+            assert not torch.allclose(inp[:, 1:51], prompts[i - 1].expand(2, -1, -1))
+
+
 def test_gradients_reach_only_trainable_tensors():
-    for method, cfg in [("bitfit", {}), ("lora", LORA_CFG), ("linear_probe", {})]:
+    for method, cfg in [("bitfit", {}), ("lora", LORA_CFG), ("vpt_deep", VPT_CFG), ("linear_probe", {})]:
         m = base_model(); apply_method(m, method, cfg); m.train()
         if method == "lora":                                   # with B = 0 the gradient of A is exactly zero (dL/dA = B^T ...)
             with torch.no_grad():
