@@ -5,3 +5,6 @@ slurm_logs/
 *.pt
 .ipynb_checkpoints/
 CS_412_proposal.pdf
+Project-412.pdfreport.md
+intermediate_report.md
+results/
