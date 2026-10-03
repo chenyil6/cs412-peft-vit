@@ -25,9 +25,9 @@ optim:
   momentum: 0.9
   weight_decay: 0.0
 
-sched:
-  epochs: 50
-  warmup_epochs: 5
+sched:            # 100 epochs, 10 warmup: the VPT paper's budget, shared by every method (see configs/vpt_deep.yaml)
+  epochs: 100
+  warmup_epochs: 10
   min_lr_ratio: 0.0
 
 train:

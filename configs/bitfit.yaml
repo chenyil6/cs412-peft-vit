@@ -22,9 +22,10 @@ optim:
   betas: [0.9, 0.999]
   weight_decay: 0.0
 
-sched:            # shared budget for every method (decision 2026-09-28): 50 epochs, 5 warmup, cosine to 0
-  epochs: 50
-  warmup_epochs: 5
+sched:            # shared budget for every method (decision 2026-10-03): 100 epochs, 10 warmup, cosine to 0,
+                  # the VPT paper's setting; 50 epochs left VPT-deep unconverged (65.6 -> 69.3 at 100, seed 0)
+  epochs: 100
+  warmup_epochs: 10
   min_lr_ratio: 0.0
 
 train:

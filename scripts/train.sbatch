@@ -9,7 +9,7 @@
 #SBATCH --gpus-per-node=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64g
-#SBATCH --time=02:00:00
+#SBATCH --time=01:00:00
 #SBATCH --output=slurm_logs/%x-%j.out
 #
 # usage:  sbatch scripts/train.sbatch configs/linear_probe.yaml [--seed 0] [--set k=v ...]
