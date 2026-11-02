@@ -204,6 +204,7 @@ def main():
         "params_base": n_base, "params_added": n_added, "params_total": n_total,
         "params_trainable": n_trainable, "params_head": n_head,
         "params_method_excl_head": n_method, "trainable_pct": 100 * n_trainable / n_base,
+        "params_method_effective": method_info.get("effective_params", n_method),
         "peak_gpu_mem_mb": peak_mem_mb,
         "train_time_s": train_time_total, "wall_time_s": wall.elapsed(),
         "epoch_time_s_mean": train_time_total / epochs,
