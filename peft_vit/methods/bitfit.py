@@ -31,7 +31,7 @@ def apply_bitfit(model, cfg):
         if subset == "q_fc2" and name.endswith("attn.qkv.bias"):
             # the fused qkv bias is one tensor [b_q | b_k | b_v]; keep b_k, b_v fixed by zeroing their gradient
             mask = torch.zeros_like(p); mask[:dim] = 1.0
-            p.register_hook(lambda g, mask=mask: g * mask)
+            p.register_hook(lambda g, mask=mask: g * mask.to(g.device))   # mask is built before model.to(device)
             n_eff += dim
         else:
             n_eff += p.numel()
