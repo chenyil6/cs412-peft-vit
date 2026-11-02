@@ -33,16 +33,16 @@ def main():
     p = argparse.ArgumentParser(); p.add_argument("--out", default="latex/final"); a = p.parse_args()
     tabs = Path(a.out) / "tables"; figs = Path(a.out) / "figures"; tabs.mkdir(parents=True, exist_ok=True); figs.mkdir(parents=True, exist_ok=True)
     rows = [
-        ("VPT-deep, $p=50$, 100 epochs (main)", load("runs/vpt_deep_s*")),
-        ("VPT-deep, $p=50$, 200 epochs", load("runs/ablation_epochs/ep200/vpt_deep_s*")),
+        ("VPT $p{=}50$, 100 ep (main)", load("runs/vpt_deep_s*")),
+        ("VPT $p{=}50$, 200 ep", load("runs/ablation_epochs/ep200/vpt_deep_s*")),
         ("BitFit, all biases (main)", load("runs/bitfit_s*")),
-        ("BitFit, $b_q$ and $b_2$ only", load("runs/ablation_bitfit_subset/bitfit_qfc2_s*")),
-        ("LoRA $r=2$ (seed 0)", load("runs/ablation_lora_rank/lora_r2_s0")),
-        ("LoRA $r=8$ (main, seed 0)", [r for r in load("runs/lora_s0")]),
-        ("LoRA $r=32$ (seed 0)", load("runs/ablation_lora_rank/lora_r32_s0")),
-        ("VPT-deep $p=10$ (seed 0)", load("runs/ablation_vpt_tokens/vpt_p10_s0")),
-        ("VPT-deep $p=50$ (main, seed 0)", load("runs/vpt_deep_s0")),
-        ("VPT-deep $p=200$ (seed 0)", load("runs/ablation_vpt_tokens/vpt_p200_s0")),
+        ("BitFit, $b_q,b_2$ only", load("runs/ablation_bitfit_subset/bitfit_qfc2_s*")),
+        ("LoRA $r{=}2$ (seed 0)", load("runs/ablation_lora_rank/lora_r2_s0")),
+        ("LoRA $r{=}8$ (main, seed 0)", [r for r in load("runs/lora_s0")]),
+        ("LoRA $r{=}32$ (seed 0)", load("runs/ablation_lora_rank/lora_r32_s0")),
+        ("VPT $p{=}10$ (seed 0)", load("runs/ablation_vpt_tokens/vpt_p10_s0")),
+        ("VPT $p{=}50$ (main, seed 0)", load("runs/vpt_deep_s0")),
+        ("VPT $p{=}200$ (seed 0)", load("runs/ablation_vpt_tokens/vpt_p200_s0")),
     ]
     lines = []
     for name, runs in rows:
