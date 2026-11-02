@@ -117,11 +117,11 @@ def tables(df, a100, a50, out):
         bold = r.acc_mean == a100.acc_mean.max()
         acc = f"$\\mathbf{{{r.acc_mean:.2f}\\pm{r.acc_std:.2f}}}$" if bold else f"${r.acc_mean:.2f}\\pm{r.acc_std:.2f}$"
         return f"{LABEL[m]} & {acc} & {int(r.method_params):,} & {100*r.method_params/85798656:.2f} & {r.mem_gb:.1f} & {r.epoch_s:.1f} & ${r5.acc_mean:.2f}\\pm{r5.acc_std:.2f}$ \\\\"
-    (out / "main_results.tex").write_text("\n".join(row(m) for m in METHODS) + "\n")
+    (out / "main_results.tex").write_text("\n".join(row(m) for m in METHODS))   # no trailing newline: the file is \input inside a tabular
     per = df.pivot(index="method", columns="seed", values="final_test_acc").reindex(METHODS)
-    (out / "per_seed.tex").write_text("\n".join(f"{LABEL[m]} & " + " & ".join(f"{per.loc[m, s]:.2f}" for s in sorted(per.columns)) + f" & {per.loc[m].mean():.2f} & {per.loc[m].std():.2f} \\\\" for m in METHODS) + "\n")
+    (out / "per_seed.tex").write_text("\n".join(f"{LABEL[m]} & " + " & ".join(f"{per.loc[m, s]:.2f}" for s in sorted(per.columns)) + f" & {per.loc[m].mean():.2f} & {per.loc[m].std():.2f} \\\\" for m in METHODS))
     rel = pd.DataFrame({"acc_rel": 100 * a100.acc_mean / a100.loc["full_ft"].acc_mean, "mem_rel": 100 * a100.mem_gb / a100.loc["full_ft"].mem_gb, "time_rel": 100 * a100.epoch_s / a100.loc["full_ft"].epoch_s})
-    (out / "relative_to_full.tex").write_text("\n".join(f"{LABEL[m]} & {rel.loc[m].acc_rel:.1f} & {rel.loc[m].mem_rel:.0f} & {rel.loc[m].time_rel:.0f} \\\\" for m in METHODS) + "\n")
+    (out / "relative_to_full.tex").write_text("\n".join(f"{LABEL[m]} & {rel.loc[m].acc_rel:.1f} & {rel.loc[m].mem_rel:.0f} & {rel.loc[m].time_rel:.0f} \\\\" for m in METHODS))
     return rel
 
 
