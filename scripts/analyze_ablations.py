@@ -58,7 +58,7 @@ def main():
         ep = cs[0].epoch.values; acc = np.stack([c.test_acc.values for c in cs]); mu, sd = acc.mean(0), acc.std(0)
         ax.plot(ep, mu, color=COLOR[key], lw=1.4, label=f"{lab} (n={len(runs)})"); ax.fill_between(ep, mu - sd, mu + sd, color=COLOR[key], alpha=0.18, lw=0)
     ax.set_xlabel("Epoch"); ax.set_ylabel("Test top-1 accuracy (%)"); ax.set_ylim(0, 80); ax.grid(axis="y"); ax.set_axisbelow(True); ax.legend(frameon=False, loc="lower right")
-    fig.savefig(figs / "fig_vpt_budget.pdf", bbox_inches="tight"); fig.savefig(figs / "fig_vpt_budget.png", dpi=200, bbox_inches="tight")
+    fig.savefig(figs / "fig_vpt_budget.pdf", bbox_inches="tight"); fig.savefig(figs / "fig_vpt_budget.png", dpi=300, bbox_inches="tight")
 
 
 if __name__ == "__main__":

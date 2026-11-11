@@ -49,7 +49,7 @@ def agg(df):
 
 
 def save(fig, out, name):
-    fig.savefig(out / f"{name}.pdf", bbox_inches="tight"); fig.savefig(out / f"{name}.png", dpi=200, bbox_inches="tight"); plt.close(fig)
+    fig.savefig(out / f"{name}.pdf", bbox_inches="tight"); fig.savefig(out / f"{name}.png", dpi=300, bbox_inches="tight"); plt.close(fig)
 
 
 def fig_acc_vs_params(a, out):
