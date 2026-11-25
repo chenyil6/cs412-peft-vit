@@ -262,6 +262,18 @@ def main():
         [("BitFit's recommended subset does not transfer: ", {"bold": True}), ("b_q + b_2 loses a quarter of the gain on ViT.", {})]], size=13, gap=8)
     notes(s, "Four ablations, each 10 to 25 GPU minutes. Doubling VPT's budget again gives 71.5 and it is still rising. Prompt length is the most sensitive knob in the study. LoRA improves smoothly with rank and at rank 32 passes full fine-tuning. BitFit's two-bias subset, which works on BERT, does not transfer to ViT.")
 
+    # 12b where the gains come from ---------------------------------------------------------------
+    s = prs.slides.add_slide(blank); n += 1; title(s, "Gains land on the hard classes; the methods disagree"); footer(s, n)
+    picture(s, FIG / "fig_perclass.png", Inches(0.6), Inches(1.5), w=Inches(8.4))
+    bullets(s, Inches(9.3), Inches(1.6), Inches(3.4), Inches(3.6), [
+        [("Easiest fifth of classes: ", {"bold": True}), ("every method +5 points; indistinguishable.", {})],
+        [("Hardest fifth: ", {"bold": True}), ("BitFit +27, LoRA +34, VPT +25, full FT +39. The ranking is about repairing missing features.", {})],
+        [("LoRA and full FT agree on only 73% ", {"bold": True}), ("of test images; each is right alone on 8 to 10%.", {})]], size=14, gap=10)
+    rect(s, Inches(9.3), Inches(5.2), Inches(3.4), Inches(1.5), RGBColor(0xEE, 0xF2, 0xFB), line=SLATE2, rounded=True)
+    text(s, Inches(9.5), Inches(5.3), Inches(3.0), Inches(1.3), [[("Finding 7. ", {"bold": True, "italic": True, "color": SLATE}), ("A vote of the three adapters reaches 74.7%, above full FT, while sharing one backbone.", {})]], size=13)
+    text(s, Inches(0.6), Inches(5.8), Inches(8.4), Inches(0.9), "Seed-0 checkpoints re-evaluated on the 3,333 test images; re-evaluation reproduced every logged accuracy exactly.", size=12, color=MUTED, italic=True)
+    notes(s, "A last analysis: where do the gains come from? On classes the frozen features already handle, every method adds the same five points. On the hardest classes the methods separate, and full fine-tuning repairs the most. The methods also make different errors, so a majority vote of three adapters beats full fine-tuning.")
+
     # 13 lessons ---------------------------------------------------------------------------------
     s = prs.slides.add_slide(blank); n += 1; title(s, "What I learned"); footer(s, n)
     lessons = [("1", "The protocol is the result", "Budget, normalisation, head init and the evaluation split all had to be fixed before any number meant anything; one of them silently flipped a conclusion.", BLUE),
@@ -276,7 +288,7 @@ def main():
         text(s, x + Inches(0.25), y + Inches(0.25), Inches(0.5), Inches(0.5), num, size=16, bold=True, color=WHITE, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, font=HEAD)
         text(s, x + Inches(0.9), y + Inches(0.22), Inches(2.9), Inches(0.56), hd, size=15, bold=True, color=SLATE, font=HEAD, anchor=MSO_ANCHOR.MIDDLE)
         text(s, x + Inches(0.25), y + Inches(0.9), Inches(3.45), Inches(1.5), bd, size=13)
-    text(s, Inches(8.9), Inches(4.3), Inches(3.8), Inches(2.3), [[("Compute used: ", {"bold": True, "color": SLATE}), ("about 10 GPU-hours on A100 for 30 main runs, 14 ablation runs and profiling, after pre-resizing images once so data loading never bottlenecked.", {})]], size=13, color=INK)
+    text(s, Inches(8.9), Inches(4.3), Inches(3.8), Inches(2.3), [[("Compute used: ", {"bold": True, "color": SLATE}), ("about 8 GPU-hours on A100 for 30 main runs, 14 ablation runs and profiling, after pre-resizing images once so data loading never bottlenecked.", {})]], size=13, color=INK)
     notes(s, "Five lessons. The biggest one: a fair comparison is mostly about the protocol, and a cheap choice like halving the epochs can flip a conclusion without any warning.")
 
     # 14 conclusion (dark) ------------------------------------------------------------------------
